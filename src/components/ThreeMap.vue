@@ -38,6 +38,8 @@ interface Props {
   selected?: (string | number)[];
   outline?: OutlinePoint[];
   tooltipFormatter?: (p: MapPoint) => string;
+  width?: number;
+  height?: number;
 }
 
 const props = defineProps<Props>();
@@ -80,8 +82,10 @@ watch(() => props.outline, () => {
 onMounted(async () => {
   await nextTick();
   if (!container.value || !minimap.value) return;
-  const width = container.value.clientWidth;
-  const height = container.value.clientHeight;
+  const width = props.width || 800;
+  const height = props.height || 600;
+  container.value.style.width = width + 'px';
+  container.value.style.height = height + 'px';
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
@@ -340,9 +344,9 @@ defineExpose({
 <style scoped lang="scss">
 .map-container {
   width: 100%;
-  height: 860px;
-  overflow: hidden;
+  height: 100%;
   position: relative;
+  overflow: hidden;
   background: #fff;
 }
 .minimap {
