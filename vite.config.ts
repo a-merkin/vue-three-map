@@ -1,9 +1,13 @@
 // @ts-nocheck
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import dts from 'vite-plugin-dts'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), dts({
+    rollupTypes: true,
+    tsconfigPath: './tsconfig.app.json'
+  })],
   build: {
     lib: {
       entry: new URL('./src/index.ts', import.meta.url).pathname,
