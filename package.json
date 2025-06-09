@@ -1,8 +1,13 @@
 {
   "name": "vue-three-map",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/three-map.umd.js",
+  "module": "dist/three-map.es.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
@@ -21,6 +26,7 @@
     "sass-embedded": "^1.89.1",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
-    "vue-tsc": "^2.2.8"
+    "vue-tsc": "^2.2.8",
+    "@types/node": "^20.11.9"
   }
 }

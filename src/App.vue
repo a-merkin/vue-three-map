@@ -1,26 +1,14 @@
 <script setup lang="ts">
 import ThreeMap from './components/ThreeMap.vue'
+
+const points = [
+  { id: 1, name: 'Point 1', lat: 0, long: 0 }
+]
 </script>
 
 <template>
-  <ThreeMap 
-            :tableData="tables.tableCurrentGroupsWellData"
-            @changeSelectRow="changeSelectRow"
-            :selectedRows="selectedRows"
-        />
+  <ThreeMap :points="points" />
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
 </style>
