@@ -24,7 +24,9 @@ const outline = [
 </script>
 
 <template>
-  <ThreeMap :points="points" :outline="outline" :width="1000" :height="700" />
+  <div style="width: 100vw; height: 100vh;">
+    <ThreeMap :points="points" :outline="outline" />
+  </div>
 </template>
 
 <style scoped>

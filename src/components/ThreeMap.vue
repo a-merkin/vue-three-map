@@ -1,5 +1,4 @@
 <template>
-  <div>
     <div ref="container" class="map-container">
       <div ref="minimap" class="minimap"></div>
       <div
@@ -10,7 +9,6 @@
         {{ activeTooltip }}
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -82,10 +80,24 @@ watch(() => props.outline, () => {
 onMounted(async () => {
   await nextTick();
   if (!container.value || !minimap.value) return;
-  const width = props.width || 800;
-  const height = props.height || 600;
-  container.value.style.width = width + 'px';
-  container.value.style.height = height + 'px';
+  let width = props.width;
+  let height = props.height;
+  function getContainerSize() {
+    if (container.value) {
+      return {
+        width: container.value.clientWidth || 800,
+        height: container.value.clientHeight || 600
+      };
+    }
+    return { width: 800, height: 600 };
+  }
+  if (!width || !height) {
+    const size = getContainerSize();
+    width = width || size.width;
+    height = height || size.height;
+  }
+  container.value.style.width = props.width ? width + 'px' : '100%';
+  container.value.style.height = props.height ? height + 'px' : '100%';
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
@@ -161,17 +173,32 @@ onMounted(async () => {
   container.value.addEventListener('pointermove', onPointerMove);
   container.value.addEventListener('pointerout', onPointerOut);
   container.value.addEventListener('click', handleClick);
-});
 
-onBeforeUnmount(() => {
-  if (container.value) {
-    container.value.removeEventListener('pointermove', onPointerMove);
-    container.value.removeEventListener('pointerout', onPointerOut);
-    container.value.removeEventListener('click', handleClick);
+  function handleResize() {
+    let newWidth = props.width;
+    let newHeight = props.height;
+    if (!newWidth || !newHeight) {
+      const size = getContainerSize();
+      newWidth = newWidth || size.width;
+      newHeight = newHeight || size.height;
+    }
+    camera.aspect = newWidth / newHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(newWidth, newHeight);
   }
-  cancelAnimationFrame(animationFrameId);
-  renderer.dispose();
-  miniRenderer.dispose();
+  window.addEventListener('resize', handleResize);
+
+  onBeforeUnmount(() => {
+    if (container.value) {
+      container.value.removeEventListener('pointermove', onPointerMove);
+      container.value.removeEventListener('pointerout', onPointerOut);
+      container.value.removeEventListener('click', handleClick);
+    }
+    window.removeEventListener('resize', handleResize);
+    cancelAnimationFrame(animationFrameId);
+    renderer.dispose();
+    miniRenderer.dispose();
+  });
 });
 
 function drawOutline() {
@@ -348,6 +375,11 @@ defineExpose({
   position: relative;
   overflow: hidden;
   background: #fff;
+}
+.map-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 .minimap {
   position: absolute;
