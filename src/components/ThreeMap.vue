@@ -38,6 +38,7 @@ interface Props {
   tooltipFormatter?: (p: MapPoint) => string;
   width?: number;
   height?: number;
+  geoBackground?: 'countries' | 'russia' | 'custom' | null;
 }
 
 const props = defineProps<Props>();
@@ -75,6 +76,10 @@ watch(() => props.selected, () => {
 
 watch(() => props.outline, () => {
   nextTick().then(drawOutline);
+});
+
+watch(() => props.geoBackground, () => {
+  nextTick().then(loadGeoBackground);
 });
 
 onMounted(async () => {
@@ -159,6 +164,7 @@ onMounted(async () => {
   miniViewDot.position.set(0, 0, 0.1);
   miniRootGroup.add(miniViewDot);
 
+  loadGeoBackground();
   drawOutline();
   drawPoints();
 
@@ -200,6 +206,145 @@ onMounted(async () => {
     miniRenderer.dispose();
   });
 });
+
+async function loadGeoBackground() {
+  if (!scene || !props.geoBackground) return;
+  
+  // Удаляем существующую гео подложку
+  const existing = scene.children.filter(o => o.userData.isGeoBackground);
+  existing.forEach(o => scene.remove(o));
+  
+  try {
+    let geoData;
+    switch (props.geoBackground) {
+      case 'countries':
+        geoData = await fetch('/geo/countries.geo.json').then(res => res.json());
+        break;
+      case 'russia':
+        geoData = await fetch('/geo/RUS.geo.json').then(res => res.json());
+        break;
+      case 'custom':
+        geoData = await fetch('/geo/custom.geo.json').then(res => res.json());
+        break;
+      default:
+        return;
+    }
+    
+    drawGeoBackground(geoData);
+  } catch (error) {
+    console.error('Ошибка загрузки гео подложки:', error);
+  }
+}
+
+function drawGeoBackground(geoData: any) {
+  if (!scene) return;
+  
+  const projScale = 300;
+  const projection = geoMercator().scale(projScale).translate([0, 0]);
+  
+  geoData.features.forEach((feature: any) => {
+    if (feature.geometry.type === 'Polygon') {
+      const coordinates = feature.geometry.coordinates[0];
+      const points = coordinates.map((coord: number[]) => {
+        const [x, y] = projection([coord[0], coord[1]]) as [number, number];
+        return new THREE.Vector3(x, -y, -0.001);
+      });
+      
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({ 
+        color: 0xcccccc, 
+        transparent: true, 
+        opacity: 0.6 
+      });
+      const line = new THREE.Line(geometry, material);
+      line.userData.isGeoBackground = true;
+      scene.add(line);
+      
+      // Добавляем заполнение
+      const shape = new THREE.Shape();
+      points.forEach((point: THREE.Vector3, index: number) => {
+        if (index === 0) {
+          shape.moveTo(point.x, point.y);
+        } else {
+          shape.lineTo(point.x, point.y);
+        }
+      });
+      
+      const fillGeometry = new THREE.ShapeGeometry(shape);
+      const fillMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0xf5f5f5, 
+        transparent: true, 
+        opacity: 0.3,
+        side: THREE.DoubleSide
+      });
+      const fillMesh = new THREE.Mesh(fillGeometry, fillMaterial);
+      fillMesh.position.z = -0.002;
+      fillMesh.userData.isGeoBackground = true;
+      scene.add(fillMesh);
+      
+    } else if (feature.geometry.type === 'MultiPolygon') {
+      feature.geometry.coordinates.forEach((polygon: number[][][]) => {
+        polygon.forEach((ring: number[][]) => {
+          const points = ring.map((coord: number[]) => {
+            const [x, y] = projection([coord[0], coord[1]]) as [number, number];
+            return new THREE.Vector3(x, -y, -0.001);
+          });
+          
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const material = new THREE.LineBasicMaterial({ 
+            color: 0xcccccc, 
+            transparent: true, 
+            opacity: 0.6 
+          });
+          const line = new THREE.Line(geometry, material);
+          line.userData.isGeoBackground = true;
+          scene.add(line);
+          
+          // Добавляем заполнение для внешнего кольца
+          if (ring === polygon[0]) {
+            const shape = new THREE.Shape();
+            points.forEach((point: THREE.Vector3, index: number) => {
+              if (index === 0) {
+                shape.moveTo(point.x, point.y);
+              } else {
+                shape.lineTo(point.x, point.y);
+              }
+            });
+            
+            // Добавляем внутренние отверстия
+            polygon.slice(1).forEach((hole: number[][]) => {
+                           const holePoints = hole.map((coord: number[]) => {
+               const [x, y] = projection([coord[0], coord[1]]) as [number, number];
+               return new THREE.Vector2(x, -y);
+             });
+              const holeShape = new THREE.Path();
+              holePoints.forEach((point: THREE.Vector2, index: number) => {
+                if (index === 0) {
+                  holeShape.moveTo(point.x, point.y);
+                } else {
+                  holeShape.lineTo(point.x, point.y);
+                }
+              });
+              shape.holes.push(holeShape);
+            });
+            
+            const fillGeometry = new THREE.ShapeGeometry(shape);
+            const fillMaterial = new THREE.MeshBasicMaterial({ 
+              color: 0xf5f5f5, 
+              transparent: true, 
+              opacity: 0.3,
+              side: THREE.DoubleSide
+            });
+            const fillMesh = new THREE.Mesh(fillGeometry, fillMaterial);
+            fillMesh.position.z = -0.002;
+            fillMesh.userData.isGeoBackground = true;
+            scene.add(fillMesh);
+          }
+        });
+      });
+    }
+  });
+}
 
 function drawOutline() {
   if (!scene) return;
