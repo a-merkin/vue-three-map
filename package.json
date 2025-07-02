@@ -19,7 +19,7 @@
       "import": "./dist/three-map.es.js",
       "require": "./dist/three-map.umd.js"
     },
-    "./styles": "./dist/three-map.css"
+    "./styles": "./dist/vue-three-map.css"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",
