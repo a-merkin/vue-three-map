@@ -17,6 +17,9 @@ import * as THREE from 'three';
 import { geoMercator } from 'd3-geo';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { MOUSE } from 'three';
+import countriesGeoData from '../assets/geo/countries.geo.json';
+import russiaGeoData from '../assets/geo/RUS.geo.json';
+import customGeoData from '../assets/geo/custom.geo.json';
 
 interface MapPoint {
   id: string | number;
@@ -207,7 +210,7 @@ onMounted(async () => {
   });
 });
 
-async function loadGeoBackground() {
+function loadGeoBackground() {
   if (!scene || !props.geoBackground) return;
   
   // Удаляем существующую гео подложку
@@ -218,13 +221,13 @@ async function loadGeoBackground() {
     let geoData;
     switch (props.geoBackground) {
       case 'countries':
-        geoData = await fetch('/geo/countries.geo.json').then(res => res.json());
+        geoData = countriesGeoData;
         break;
       case 'russia':
-        geoData = await fetch('/geo/RUS.geo.json').then(res => res.json());
+        geoData = russiaGeoData;
         break;
       case 'custom':
-        geoData = await fetch('/geo/custom.geo.json').then(res => res.json());
+        geoData = customGeoData;
         break;
       default:
         return;

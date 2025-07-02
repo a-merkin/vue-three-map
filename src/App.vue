@@ -23,7 +23,7 @@ const handlePointClick = (point: any) => {
 </script>
 
 <template>
-  <div style="width: 100vw; height: 100vh; position: relative;">
+  <div style="width: 900px; height: 900px; position: relative;">
     <div class="controls">
       <h3>Гео подложка</h3>
       <div class="button-group">
