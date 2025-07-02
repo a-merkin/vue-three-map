@@ -10,15 +10,18 @@ export default defineConfig({
   })],
   build: {
     lib: {
-      entry: new URL('./src/index.ts', import.meta.url).pathname,
+      entry: './src/index.ts',
       name: 'ThreeMap',
       fileName: (format) => `three-map.${format}.js`
     },
     rollupOptions: {
       external: ['vue', 'three', 'd3-geo'],
       output: {
+        exports: 'named',
         globals: {
-          vue: 'Vue'
+          vue: 'Vue',
+          three: 'THREE',
+          'd3-geo': 'd3Geo'
         }
       }
     }

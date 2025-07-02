@@ -13,6 +13,14 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/three-map.es.js",
+      "require": "./dist/three-map.umd.js"
+    },
+    "./styles": "./dist/three-map.css"
+  },
   "dependencies": {
     "d3-geo": "^3.1.1",
     "three": "^0.177.0",
