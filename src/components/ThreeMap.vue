@@ -532,7 +532,7 @@ defineExpose({
 .minimap {
   position: absolute;
   top: 10px;
-  left: 10px;
+  right: 10px;
   width: 300px;
   height: 180px;
   border: 1px solid #ccc;
