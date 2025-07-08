@@ -1,25 +1,25 @@
 <template>
-    <div ref="container" class="map-container">
-      <div ref="minimap" class="minimap"></div>
-      <div
-        v-if="activeTooltip"
-        class="tooltip"
-        :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
-      >
-        {{ activeTooltip }}
-      </div>
+  <div ref="container" class="map-container">
+    <div ref="minimap" class="minimap"></div>
+    <div
+      v-if="activeTooltip"
+      class="tooltip"
+      :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
+    >
+      {{ activeTooltip }}
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
-import * as THREE from 'three';
-import { geoMercator } from 'd3-geo';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { MOUSE } from 'three';
-import countriesGeoData from '../assets/geo/countries.geo.json';
-import russiaGeoData from '../assets/geo/RUS.geo.json';
-import customGeoData from '../assets/geo/custom.geo.json';
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
+import * as THREE from "three";
+import { geoMercator } from "d3-geo";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { MOUSE } from "three";
+import countriesGeoData from "../assets/geo/countries.geo.json";
+import russiaGeoData from "../assets/geo/RUS.geo.json";
+import customGeoData from "../assets/geo/custom.geo.json";
 
 interface MapPoint {
   id: string | number;
@@ -41,12 +41,12 @@ interface Props {
   tooltipFormatter?: (p: MapPoint) => string;
   width?: number;
   height?: number;
-  geoBackground?: 'countries' | 'russia' | 'custom' | null;
+  geoBackground?: "countries" | "russia" | "custom" | null;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
-  (e: 'point-click', p: MapPoint): void;
+  (e: "point-click", p: MapPoint): void;
 }>();
 
 const container = ref<HTMLElement | null>(null);
@@ -69,21 +69,33 @@ let contourPoints: THREE.Vector3[] = [];
 const activeTooltip = ref<string | null>(null);
 const tooltipPosition = ref({ x: 0, y: 0 });
 
-watch(() => props.points, () => {
-  nextTick().then(drawPoints);
-});
+watch(
+  () => props.points,
+  () => {
+    nextTick().then(drawPoints);
+  }
+);
 
-watch(() => props.selected, () => {
-  nextTick().then(drawPoints);
-});
+watch(
+  () => props.selected,
+  () => {
+    nextTick().then(drawPoints);
+  }
+);
 
-watch(() => props.outline, () => {
-  nextTick().then(drawOutline);
-});
+watch(
+  () => props.outline,
+  () => {
+    nextTick().then(drawOutline);
+  }
+);
 
-watch(() => props.geoBackground, () => {
-  nextTick().then(loadGeoBackground);
-});
+watch(
+  () => props.geoBackground,
+  () => {
+    nextTick().then(loadGeoBackground);
+  }
+);
 
 onMounted(async () => {
   await nextTick();
@@ -94,7 +106,7 @@ onMounted(async () => {
     if (container.value) {
       return {
         width: container.value.clientWidth || 800,
-        height: container.value.clientHeight || 600
+        height: container.value.clientHeight || 600,
       };
     }
     return { width: 800, height: 600 };
@@ -104,8 +116,8 @@ onMounted(async () => {
     width = width || size.width;
     height = height || size.height;
   }
-  container.value.style.width = props.width ? width + 'px' : '100%';
-  container.value.style.height = props.height ? height + 'px' : '100%';
+  container.value.style.width = props.width ? width + "px" : "100%";
+  container.value.style.height = props.height ? height + "px" : "100%";
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
@@ -131,7 +143,7 @@ onMounted(async () => {
   controls.mouseButtons = {
     LEFT: MOUSE.PAN,
     MIDDLE: MOUSE.DOLLY,
-    RIGHT: MOUSE.ROTATE
+    RIGHT: MOUSE.ROTATE,
   };
 
   const projScale = 300;
@@ -162,7 +174,10 @@ onMounted(async () => {
   viewRect = new THREE.Line(rectGeometry, rectMaterial);
   miniScene.add(viewRect);
   const dotGeometry = new THREE.CircleGeometry(24, 32);
-  const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+  const dotMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff0000,
+    side: THREE.DoubleSide,
+  });
   miniViewDot = new THREE.Mesh(dotGeometry, dotMaterial);
   miniViewDot.position.set(0, 0, 0.1);
   miniRootGroup.add(miniViewDot);
@@ -179,9 +194,9 @@ onMounted(async () => {
   };
   animate();
 
-  container.value.addEventListener('pointermove', onPointerMove);
-  container.value.addEventListener('pointerout', onPointerOut);
-  container.value.addEventListener('click', handleClick);
+  container.value.addEventListener("pointermove", onPointerMove);
+  container.value.addEventListener("pointerout", onPointerOut);
+  container.value.addEventListener("click", handleClick);
 
   function handleResize() {
     let newWidth = props.width;
@@ -195,15 +210,15 @@ onMounted(async () => {
     camera.updateProjectionMatrix();
     renderer.setSize(newWidth, newHeight);
   }
-  window.addEventListener('resize', handleResize);
+  window.addEventListener("resize", handleResize);
 
   onBeforeUnmount(() => {
     if (container.value) {
-      container.value.removeEventListener('pointermove', onPointerMove);
-      container.value.removeEventListener('pointerout', onPointerOut);
-      container.value.removeEventListener('click', handleClick);
+      container.value.removeEventListener("pointermove", onPointerMove);
+      container.value.removeEventListener("pointerout", onPointerOut);
+      container.value.removeEventListener("click", handleClick);
     }
-    window.removeEventListener('resize', handleResize);
+    window.removeEventListener("resize", handleResize);
     cancelAnimationFrame(animationFrameId);
     renderer.dispose();
     miniRenderer.dispose();
@@ -212,57 +227,56 @@ onMounted(async () => {
 
 function loadGeoBackground() {
   if (!scene || !props.geoBackground) return;
-  
+
   // Удаляем существующую гео подложку
-  const existing = scene.children.filter(o => o.userData.isGeoBackground);
-  existing.forEach(o => scene.remove(o));
-  
+  const existing = scene.children.filter((o) => o.userData.isGeoBackground);
+  existing.forEach((o) => scene.remove(o));
+
   try {
     let geoData;
     switch (props.geoBackground) {
-      case 'countries':
+      case "countries":
         geoData = countriesGeoData;
         break;
-      case 'russia':
+      case "russia":
         geoData = russiaGeoData;
         break;
-      case 'custom':
+      case "custom":
         geoData = customGeoData;
         break;
       default:
         return;
     }
-    
+
     drawGeoBackground(geoData);
   } catch (error) {
-    console.error('Ошибка загрузки гео подложки:', error);
+    console.error("Ошибка загрузки гео подложки:", error);
   }
 }
 
 function drawGeoBackground(geoData: any) {
   if (!scene) return;
-  
+
   const projScale = 300;
   const projection = geoMercator().scale(projScale).translate([0, 0]);
-  
+
   geoData.features.forEach((feature: any) => {
-    if (feature.geometry.type === 'Polygon') {
+    if (feature.geometry.type === "Polygon") {
       const coordinates = feature.geometry.coordinates[0];
       const points = coordinates.map((coord: number[]) => {
         const [x, y] = projection([coord[0], coord[1]]) as [number, number];
         return new THREE.Vector3(x, -y, -0.001);
       });
-      
+
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({ 
-        color: 0xcccccc, 
-        transparent: true, 
-        opacity: 0.6 
+      const material = new THREE.LineBasicMaterial({
+        color: 0x00000,
+        linewidth: 100,
       });
       const line = new THREE.Line(geometry, material);
       line.userData.isGeoBackground = true;
       scene.add(line);
-      
+
       // Добавляем заполнение
       const shape = new THREE.Shape();
       points.forEach((point: THREE.Vector3, index: number) => {
@@ -272,37 +286,35 @@ function drawGeoBackground(geoData: any) {
           shape.lineTo(point.x, point.y);
         }
       });
-      
+
       const fillGeometry = new THREE.ShapeGeometry(shape);
-      const fillMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0xf5f5f5, 
-        transparent: true, 
+      const fillMaterial = new THREE.MeshBasicMaterial({
+        color: 0xf5f5f5,
+        transparent: true,
         opacity: 0.3,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
       });
       const fillMesh = new THREE.Mesh(fillGeometry, fillMaterial);
       fillMesh.position.z = -0.002;
       fillMesh.userData.isGeoBackground = true;
       scene.add(fillMesh);
-      
-    } else if (feature.geometry.type === 'MultiPolygon') {
+    } else if (feature.geometry.type === "MultiPolygon") {
       feature.geometry.coordinates.forEach((polygon: number[][][]) => {
         polygon.forEach((ring: number[][]) => {
           const points = ring.map((coord: number[]) => {
             const [x, y] = projection([coord[0], coord[1]]) as [number, number];
             return new THREE.Vector3(x, -y, -0.001);
           });
-          
+
           const geometry = new THREE.BufferGeometry().setFromPoints(points);
-          const material = new THREE.LineBasicMaterial({ 
-            color: 0xcccccc, 
-            transparent: true, 
-            opacity: 0.6 
+          const material = new THREE.LineBasicMaterial({
+            color: 0x0000,
+            linewidth: 100,
           });
           const line = new THREE.Line(geometry, material);
           line.userData.isGeoBackground = true;
           scene.add(line);
-          
+
           // Добавляем заполнение для внешнего кольца
           if (ring === polygon[0]) {
             const shape = new THREE.Shape();
@@ -313,13 +325,16 @@ function drawGeoBackground(geoData: any) {
                 shape.lineTo(point.x, point.y);
               }
             });
-            
+
             // Добавляем внутренние отверстия
             polygon.slice(1).forEach((hole: number[][]) => {
-                           const holePoints = hole.map((coord: number[]) => {
-               const [x, y] = projection([coord[0], coord[1]]) as [number, number];
-               return new THREE.Vector2(x, -y);
-             });
+              const holePoints = hole.map((coord: number[]) => {
+                const [x, y] = projection([coord[0], coord[1]]) as [
+                  number,
+                  number
+                ];
+                return new THREE.Vector2(x, -y);
+              });
               const holeShape = new THREE.Path();
               holePoints.forEach((point: THREE.Vector2, index: number) => {
                 if (index === 0) {
@@ -330,13 +345,13 @@ function drawGeoBackground(geoData: any) {
               });
               shape.holes.push(holeShape);
             });
-            
+
             const fillGeometry = new THREE.ShapeGeometry(shape);
-            const fillMaterial = new THREE.MeshBasicMaterial({ 
-              color: 0xf5f5f5, 
-              transparent: true, 
+            const fillMaterial = new THREE.MeshBasicMaterial({
+              color: 0xf5f5f5,
+              transparent: true,
               opacity: 0.3,
-              side: THREE.DoubleSide
+              side: THREE.DoubleSide,
             });
             const fillMesh = new THREE.Mesh(fillGeometry, fillMaterial);
             fillMesh.position.z = -0.002;
@@ -353,15 +368,17 @@ function drawOutline() {
   if (!scene) return;
   const projScale = 300;
   const projection = geoMercator().scale(projScale).translate([0, 0]);
-  const existing = scene.children.filter(o => o.userData.isOutline);
-  existing.forEach(o => scene.remove(o));
+  const existing = scene.children.filter((o) => o.userData.isOutline);
+  existing.forEach((o) => scene.remove(o));
   contourPoints = [];
   if (props.outline) {
     contourPoints = props.outline.map(({ long, lat }) => {
       const [x, y] = projection([long, lat]) as [number, number];
       return new THREE.Vector3(x, -y, 0);
     });
-    const contourGeometry = new THREE.BufferGeometry().setFromPoints(contourPoints);
+    const contourGeometry = new THREE.BufferGeometry().setFromPoints(
+      contourPoints
+    );
     const contourMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
     const contourMesh = new THREE.Line(contourGeometry, contourMaterial);
     contourMesh.userData.isOutline = true;
@@ -372,12 +389,12 @@ function drawOutline() {
 
 function drawPoints() {
   if (!scene) return;
-  const existing = scene.children.filter(o => o.userData.isPointGroup);
-  existing.forEach(o => scene.remove(o));
+  const existing = scene.children.filter((o) => o.userData.isPointGroup);
+  existing.forEach((o) => scene.remove(o));
   const projScale = 300;
   const projection = geoMercator().scale(projScale).translate([0, 0]);
 
-  props.points?.forEach(p => {
+  props.points?.forEach((p) => {
     const [x, y] = projection([p.long, p.lat]) as [number, number];
     const group = new THREE.Group();
     group.userData = { isPointGroup: true, point: p };
@@ -415,7 +432,7 @@ function updateViewRect(cam: THREE.PerspectiveCamera) {
     new THREE.Vector3(left * scaleFactor, top * scaleFactor, 0),
     new THREE.Vector3(right * scaleFactor, top * scaleFactor, 0),
     new THREE.Vector3(right * scaleFactor, bottom * scaleFactor, 0),
-    new THREE.Vector3(left * scaleFactor, bottom * scaleFactor, 0)
+    new THREE.Vector3(left * scaleFactor, bottom * scaleFactor, 0),
   ];
   (viewRect.geometry as THREE.BufferGeometry).setFromPoints(points);
   const centerOnMiniMapX = cam.position.x;
@@ -428,7 +445,9 @@ function zoomToContour(points: THREE.Vector3[], refresh: boolean) {
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y);
-  const distance = refresh ? camera.position.z : maxDim / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  const distance = refresh
+    ? camera.position.z
+    : maxDim / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   const fromPos = camera.position.clone();
   const toPos = new THREE.Vector3(center.x, center.y, distance);
   const fromTarget = controls.target.clone();
@@ -447,17 +466,20 @@ function zoomToContour(points: THREE.Vector3[], refresh: boolean) {
 }
 
 function createTextSprite(text: string): THREE.Sprite {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d')!;
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d")!;
   const fontSize = 24;
   canvas.width = 256;
   canvas.height = 64;
   context.font = `${fontSize}px Arial`;
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
+  context.textAlign = "center";
+  context.textBaseline = "middle";
   context.fillText(text, canvas.width / 2, canvas.height / 2);
   const texture = new THREE.CanvasTexture(canvas);
-  const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+  });
   const sprite = new THREE.Sprite(material);
   sprite.scale.set(0.0625, 0.015625, 0);
   return sprite;
@@ -472,14 +494,21 @@ const onPointerMove = (event: PointerEvent) => {
   );
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj.userData.isPointGroup), true);
+  const intersects = raycaster.intersectObjects(
+    scene.children.filter((obj) => obj.userData.isPointGroup),
+    true
+  );
   if (intersects.length > 0) {
-    const pointGroup = intersects[0].object.parent as THREE.Object3D & { userData: { point: MapPoint } };
+    const pointGroup = intersects[0].object.parent as THREE.Object3D & {
+      userData: { point: MapPoint };
+    };
     const point = pointGroup.userData.point;
-    activeTooltip.value = props.tooltipFormatter ? props.tooltipFormatter(point) : point.name;
+    activeTooltip.value = props.tooltipFormatter
+      ? props.tooltipFormatter(point)
+      : point.name;
     tooltipPosition.value = {
       x: event.clientX - rect.left,
-      y: event.clientY - rect.top
+      y: event.clientY - rect.top,
     };
   } else {
     activeTooltip.value = null;
@@ -499,11 +528,16 @@ const handleClick = (event: MouseEvent) => {
   );
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(scene.children.filter(obj => obj.userData.isPointGroup), true);
+  const intersects = raycaster.intersectObjects(
+    scene.children.filter((obj) => obj.userData.isPointGroup),
+    true
+  );
   if (intersects.length > 0) {
-    const pointGroup = intersects[0].object.parent as THREE.Object3D & { userData: { point: MapPoint } };
+    const pointGroup = intersects[0].object.parent as THREE.Object3D & {
+      userData: { point: MapPoint };
+    };
     const point = pointGroup.userData.point;
-    emit('point-click', point);
+    emit("point-click", point);
   }
 };
 
@@ -512,7 +546,7 @@ defineExpose({
     if (contourPoints.length) {
       zoomToContour(contourPoints, false);
     }
-  }
+  },
 });
 </script>
 
