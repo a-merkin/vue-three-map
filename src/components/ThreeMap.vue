@@ -226,11 +226,21 @@ onMounted(async () => {
 });
 
 function loadGeoBackground() {
-  if (!scene || !props.geoBackground) return;
+  if (!scene) return;
 
   // Удаляем существующую гео подложку
   const existing = scene.children.filter((o) => o.userData.isGeoBackground);
   existing.forEach((o) => scene.remove(o));
+
+  // Удаляем существующую гео подложку из миникарты
+  if (miniRootGroup) {
+    const existingMini = miniRootGroup.children.filter(
+      (o) => o.userData.isGeoBackground
+    );
+    existingMini.forEach((o) => miniRootGroup.remove(o));
+  }
+
+  if (!props.geoBackground) return;
 
   try {
     let geoData;
@@ -249,6 +259,7 @@ function loadGeoBackground() {
     }
 
     drawGeoBackground(geoData);
+    drawMiniGeoBackground(geoData);
   } catch (error) {
     console.error("Ошибка загрузки гео подложки:", error);
   }
@@ -364,8 +375,58 @@ function drawGeoBackground(geoData: any) {
   });
 }
 
+function drawMiniGeoBackground(geoData: any) {
+  if (!miniRootGroup) return;
+
+  // Удаляем существующую гео подложку из миникарты
+  const existing = miniRootGroup.children.filter(
+    (o) => o.userData.isGeoBackground
+  );
+  existing.forEach((o) => miniRootGroup.remove(o));
+
+  const projScale = 300;
+  const projection = geoMercator().scale(projScale).translate([0, 0]);
+
+  geoData.features.forEach((feature: any) => {
+    if (feature.geometry.type === "Polygon") {
+      const coordinates = feature.geometry.coordinates[0];
+      const points = coordinates.map((coord: number[]) => {
+        const [x, y] = projection([coord[0], coord[1]]) as [number, number];
+        return new THREE.Vector3(x, -y, 0);
+      });
+
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({
+        color: 0x000000,
+        linewidth: 1,
+      });
+      const line = new THREE.Line(geometry, material);
+      line.userData.isGeoBackground = true;
+      miniRootGroup.add(line);
+    } else if (feature.geometry.type === "MultiPolygon") {
+      feature.geometry.coordinates.forEach((polygon: number[][][]) => {
+        polygon.forEach((ring: number[][]) => {
+          const points = ring.map((coord: number[]) => {
+            const [x, y] = projection([coord[0], coord[1]]) as [number, number];
+            return new THREE.Vector3(x, -y, 0);
+          });
+
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const material = new THREE.LineBasicMaterial({
+            color: 0x00000,
+            linewidth: 1,
+          });
+          const line = new THREE.Line(geometry, material);
+          line.userData.isGeoBackground = true;
+          miniRootGroup.add(line);
+        });
+      });
+    }
+  });
+}
+
 function drawOutline() {
-  if (!scene) return;
+  if (!scene && !miniScene) return;
   const projScale = 300;
   const projection = geoMercator().scale(projScale).translate([0, 0]);
   const existing = scene.children.filter((o) => o.userData.isOutline);
